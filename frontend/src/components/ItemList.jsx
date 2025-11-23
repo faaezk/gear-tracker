@@ -42,6 +42,9 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow, onNaviga
   const [filterKit, setFilterKit] = useState('')
   const [borrowingItemId, setBorrowingItemId] = useState(null)
   const [borrowerName, setBorrowerName] = useState('')
+  const [selectedItems, setSelectedItems] = useState(new Set())
+  const [bulkBorrowerName, setBulkBorrowerName] = useState('')
+  const [showBulkBorrowInput, setShowBulkBorrowInput] = useState(false)
 
   const filteredItems = items.filter(item => {
     if (filterOwner && (!item.curr_owner || !item.curr_owner.toLowerCase().includes(filterOwner.toLowerCase()))) return false;
@@ -54,6 +57,70 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow, onNaviga
   // Get owners and kit numbers
   const uniqueOwners = [...new Set(items.filter(item => item.curr_owner).map(item => item.curr_owner))].sort()
   const uniqueKits = [...new Set(items.map(item => item.kit_number))].sort((a, b) => a - b)
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedItems(new Set(filteredItems.map(item => item.id)))
+    } else {
+      setSelectedItems(new Set())
+    }
+  }
+
+  const handleSelectItem = (itemId) => {
+    const newSelected = new Set(selectedItems)
+    if (newSelected.has(itemId)) {
+      newSelected.delete(itemId)
+    } else {
+      newSelected.add(itemId)
+    }
+    setSelectedItems(newSelected)
+  }
+
+  const handleBulkReturn = async () => {
+    if (selectedItems.size === 0) return
+    if (!confirm(`Return ${selectedItems.size} selected items?`)) return
+    for (const itemId of selectedItems) {
+      await onReturn(itemId)
+    }
+    setSelectedItems(new Set())
+  }
+
+  const handleBulkBorrow = async () => {
+    if (selectedItems.size === 0 || !bulkBorrowerName.trim()) return
+    if (!confirm(`Borrow ${selectedItems.size} selected items to ${bulkBorrowerName}?`)) return
+    for (const itemId of selectedItems) {
+      await onBorrow(itemId, bulkBorrowerName.trim())
+    }
+    setSelectedItems(new Set())
+    setBulkBorrowerName('')
+    setShowBulkBorrowInput(false)
+  }
+
+  const handleBulkLost = async () => {
+    if (selectedItems.size === 0) return
+    if (!confirm(`Mark ${selectedItems.size} selected items as lost?`)) return
+    for (const itemId of selectedItems) {
+      await onMarkLost(itemId)
+    }
+    setSelectedItems(new Set())
+  }
+
+  const handleBulkFound = async () => {
+    if (selectedItems.size === 0) return
+    if (!confirm(`Mark ${selectedItems.size} selected items as found?`)) return
+    for (const itemId of selectedItems) {
+      await onMarkFound(itemId)
+    }
+    setSelectedItems(new Set())
+  }
+
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every(item => selectedItems.has(item.id))
+
+  // Get selected items' statuses
+  const selectedItemsData = items.filter(item => selectedItems.has(item.id))
+  const allSelectedBorrowed = selectedItemsData.length > 0 && selectedItemsData.every(item => item.status === 1)
+  const allSelectedReturned = selectedItemsData.length > 0 && selectedItemsData.every(item => item.status === 0)
+  const allSelectedLostOrUnknown = selectedItemsData.length > 0 && selectedItemsData.every(item => item.status === 2 || item.status === 3)
 
   return (
     <div>
@@ -110,11 +177,63 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow, onNaviga
           </button>
         )}
       </div>
+
+      {selectedItems.size > 0 && (
+        <div className="form-card" style={{ marginBottom: '1rem', maxWidth: 'none', width: '100%', background: 'rgba(100, 108, 255, 0.1)', borderColor: 'var(--primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 'bold' }}>{selectedItems.size} selected</span>
+            {allSelectedBorrowed && (
+              <>
+                <button className="action-btn quick-return-btn" onClick={handleBulkReturn}>Return All</button>
+                <button className="action-btn mark-lost-btn" onClick={handleBulkLost}>Mark All Lost</button>
+              </>
+            )}
+            {allSelectedReturned && (
+              <>
+                {showBulkBorrowInput ? (
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <input type="text" 
+                      placeholder="Borrower name"
+                      value={bulkBorrowerName}
+                      onChange={(e) => setBulkBorrowerName(e.target.value)}
+                      style={{ padding: '0.5rem', fontSize: '0.85rem', width: '150px' }}
+                      autoFocus/>
+                    <button className="action-btn quick-borrow-btn" 
+                      onClick={handleBulkBorrow}
+                      disabled={!bulkBorrowerName.trim()}>
+                      ✓ Borrow
+                    </button>
+                    <button className="action-btn" 
+                      onClick={() => {
+                        setShowBulkBorrowInput(false)
+                        setBulkBorrowerName('')
+                      }}>
+                      ✕
+                    </button>
+                  </div>
+            ) : (
+              <button className="action-btn quick-borrow-btn" onClick={() => setShowBulkBorrowInput(true)}>Borrow All</button>
+            )}
+              </>
+            )}
+            {allSelectedLostOrUnknown && (
+              <button className="action-btn quick-found-btn" onClick={handleBulkFound}>Mark All Found</button>
+            )}
+            <button className="action-btn" onClick={() => setSelectedItems(new Set())}>Clear Selection</button>
+          </div>
+        </div>
+      )}
       
       <div className="table-container">
         <table>
           <thead>
             <tr>
+              <th style={{ width: '40px' }}>
+                <input type="checkbox" 
+                  checked={allFilteredSelected}
+                  onChange={handleSelectAll}
+                  title="Select all"/>
+              </th>
               <th>Kit #</th>
               <th>Type</th>
               <th>Status</th>
@@ -126,6 +245,11 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow, onNaviga
           <tbody>
             {filteredItems.map(item => (
               <tr key={item.id}>
+                <td style={{ width: '40px' }}>
+                  <input type="checkbox" 
+                    checked={selectedItems.has(item.id)}
+                    onChange={() => handleSelectItem(item.id)}/>
+                </td>
                 <td className="clickable-cell kit-cell"
                   onClick={() => handleKitClick(item.kit_number)}
                   title="View all items in this kit">
