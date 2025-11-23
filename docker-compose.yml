@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gear-tracker-backend
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend/mhs_gear.csv:/app/mhs_gear.csv
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - gear-tracker-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gear-tracker-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - gear-tracker-network
+    restart: unless-stopped
+
+networks:
+  gear-tracker-network:
+    driver: bridge
