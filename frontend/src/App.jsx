@@ -8,6 +8,7 @@ import KitDetails from './components/KitDetails.jsx'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard')
+  const [previousView, setPreviousView] = useState('dashboard')
   const [items, setItems] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -18,6 +19,10 @@ function App() {
   useEffect(() => {
     loadData()
   }, [])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [currentView])
 
   async function loadData() {
     try {
@@ -91,21 +96,23 @@ function App() {
   }
 
   function handleNavigateToItem(itemId) {
+    setPreviousView(currentView)
     setSelectedItemId(itemId)
     setSelectedKitNumber(null)
     setCurrentView('itemDetails')
   }
 
   function handleNavigateToKit(kitNumber) {
+    setPreviousView(currentView)
     setSelectedKitNumber(kitNumber)
     setSelectedItemId(null)
     setCurrentView('kitDetails')
   }
 
-  function handleBackToDashboard() {
+  function handleBack() {
     setSelectedItemId(null)
     setSelectedKitNumber(null)
-    setCurrentView('dashboard')
+    setCurrentView(previousView)
   }
     
   if (error) {
@@ -152,12 +159,14 @@ function App() {
                 onReturn={handleReturn} 
                 onMarkLost={handleMarkLost} 
                 onMarkFound={handleMarkFound} 
-                onBorrow={handleBorrow}/>
+                onBorrow={handleBorrow}
+                onNavigateToItem={handleNavigateToItem}
+                onNavigateToKit={handleNavigateToKit}/>
             )}
             {currentView === 'itemDetails' && selectedItemId && (
               <ItemDetails 
                 item={items.find(item => item.id === selectedItemId)}
-                onBack={handleBackToDashboard}
+                onBack={handleBack}
                 onReturn={handleReturn}
                 onMarkLost={handleMarkLost}
                 onMarkFound={handleMarkFound}
@@ -168,7 +177,7 @@ function App() {
               <KitDetails 
                 kitNumber={selectedKitNumber}
                 items={items}
-                onBack={handleBackToDashboard}
+                onBack={handleBack}
                 onReturn={handleReturn}
                 onMarkLost={handleMarkLost}
                 onMarkFound={handleMarkFound}

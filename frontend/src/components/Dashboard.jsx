@@ -89,20 +89,16 @@ function Dashboard({ stats, items, onNavigateToItem, onNavigateToKit }) {
           <div className="value">{totalItems}</div>
         </div>
         <div className="stat-card returned">
-          <h3>Returned</h3>
+          <h3>Returned Items</h3>
           <div className="value">{totalReturned}</div>
         </div>
         <div className="stat-card borrowed">
-          <h3>Borrowed</h3>
-          <div className="value">{totalBorrowed}</div>
+          <h3>Borrowed Kits</h3>
+          <div className="value">{totalBorrowed/5}</div>
         </div>
         <div className="stat-card lost">
-          <h3>Unknown</h3>
-          <div className="value">{totalUnknown}</div>
-        </div>
-        <div className="stat-card lost">
-          <h3>Lost</h3>
-          <div className="value">{totalLost}</div>
+          <h3>Unknown/Lost Items</h3>
+          <div className="value">{totalUnknown + totalLost}</div>
         </div>
     	</div>
       
@@ -141,7 +137,6 @@ function Dashboard({ stats, items, onNavigateToItem, onNavigateToKit }) {
           <tbody>
             {Object.keys(ITEM_TYPES).map(typeId => {
               const typeStats = stats[typeId] || [0, 0, 0, 0]
-              const total = typeStats.reduce((a, b) => a + b, 0)
               return (
                 <tr key={typeId}>
                   <td>{ITEM_TYPES[typeId]}</td>
@@ -152,6 +147,13 @@ function Dashboard({ stats, items, onNavigateToItem, onNavigateToKit }) {
                 </tr>
               )
             })}
+            <tr>
+              <td><strong>Total:</strong></td>
+              <td><strong>{totalReturned}</strong></td>
+              <td><strong>{totalBorrowed}</strong></td>
+              <td><strong>{totalUnknown}</strong></td>
+              <td><strong>{totalLost}</strong></td>
+            </tr>
           </tbody>
         </table>
       </div>

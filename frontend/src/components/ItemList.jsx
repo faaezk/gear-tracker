@@ -22,7 +22,20 @@ const STATUS_CLASSES = {
   3: 'lost'
 }
 
-function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow }) {
+function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow, onNavigateToItem, onNavigateToKit }) {
+
+  const handleItemClick = (item) => {
+    if (item && onNavigateToItem) {
+      onNavigateToItem(item.id)
+    }
+  }
+
+  const handleKitClick = (kitNumber) => {
+    if (onNavigateToKit) {
+      onNavigateToKit(kitNumber)
+    }
+  }
+
   const [filterOwner, setFilterOwner] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterType, setFilterType] = useState('')
@@ -113,8 +126,16 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow }) {
           <tbody>
             {filteredItems.map(item => (
               <tr key={item.id}>
-                <td>{item.kit_number}</td>
-                <td>{ITEM_TYPES[item.type]}</td>
+                <td className="clickable-cell kit-cell"
+                  onClick={() => handleKitClick(item.kit_number)}
+                  title="View all items in this kit">
+                  {item.kit_number}
+                </td>
+                <td className="clickable-cell"
+                  onClick={() => handleItemClick(item)}
+                  title={item.id ? `View ${ITEM_TYPES[item.type]} details` : ''}>
+                  {ITEM_TYPES[item.type]}
+                </td>
                 <td>
                   <span className={`status-badge ${STATUS_CLASSES[item.status]}`}>
                     {STATUS_NAMES[item.status]}
