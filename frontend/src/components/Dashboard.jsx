@@ -13,9 +13,21 @@ const ITEM_STATUS = {
   3: '❌',
 }
 
-function Dashboard({ stats, items, onReturn, onMarkLost }) {
+function Dashboard({ stats, items, onNavigateToItem, onNavigateToKit }) {
   if (!stats || !items) {
     return <div className="loading">Loading...</div>
+  }
+
+  const handleItemClick = (item) => {
+    if (item && onNavigateToItem) {
+      onNavigateToItem(item.id)
+    }
+  }
+
+  const handleKitClick = (kitNumber) => {
+    if (onNavigateToKit) {
+      onNavigateToKit(kitNumber)
+    }
   }
 
   // Calculate totals
@@ -25,11 +37,6 @@ function Dashboard({ stats, items, onReturn, onMarkLost }) {
   const totalUnknown = items.filter(item => item.status === 2).length
   const totalItems = items.length
 
-  // Recent borrowed items
-  const borrowedItems = items
-    .filter(item => item.status === 1)
-		.slice(0, 10)
-	
 	// Group items by kit number into 2D array
 	const itemsByKit = Object.values(
 		items.reduce((acc, item) => {
@@ -163,61 +170,43 @@ function Dashboard({ stats, items, onReturn, onMarkLost }) {
 						</tr>
 					</thead>
 					<tbody>
-						{itemsByKit.map((row, i) => (
-							<tr key={i}>
-								<td>{row[0]?.kit_number}</td>
-								<td>{ITEM_STATUS[row[0]?.status] || '-'}</td>
-								<td>{ITEM_STATUS[row[1]?.status] || '-'}</td>
-								<td>{ITEM_STATUS[row[2]?.status] || '-'}</td>
-								<td>{ITEM_STATUS[row[3]?.status] || '-'}</td>
-								<td>{ITEM_STATUS[row[4]?.status] || '-'}</td>
-							</tr>
-						))}
+					{itemsByKit.map((row, i) => (
+						<tr key={i}>
+							<td className="clickable-cell kit-cell"
+								onClick={() => handleKitClick(row[0]?.kit_number)}
+								title="View all items in this kit">
+								{row[0]?.kit_number}
+							</td>
+							<td className="clickable-cell"
+								onClick={() => handleItemClick(row[0])}
+								title={row[0] ? `View ${ITEM_TYPES[0]} details` : ''}>
+								{ITEM_STATUS[row[0]?.status] || '-'}
+							</td>
+							<td className="clickable-cell"
+								onClick={() => handleItemClick(row[1])}
+								title={row[1] ? `View ${ITEM_TYPES[1]} details` : ''}>
+								{ITEM_STATUS[row[1]?.status] || '-'}
+							</td>
+							<td className="clickable-cell"
+								onClick={() => handleItemClick(row[2])}
+								title={row[2] ? `View ${ITEM_TYPES[2]} details` : ''}>
+								{ITEM_STATUS[row[2]?.status] || '-'}
+							</td>
+							<td className="clickable-cell"
+								onClick={() => handleItemClick(row[3])}
+								title={row[3] ? `View ${ITEM_TYPES[3]} details` : ''}>
+								{ITEM_STATUS[row[3]?.status] || '-'}
+							</td>
+							<td className="clickable-cell"
+								onClick={() => handleItemClick(row[4])}
+								title={row[4] ? `View ${ITEM_TYPES[4]} details` : ''}>
+								{ITEM_STATUS[row[4]?.status] || '-'}
+							</td>
+						</tr>
+					))}
 					</tbody>
 				</table>
     	</div>
-{/* 
-      {borrowedItems.length > 0 ? (
-        <>
-          <h3 style={{ marginTop: '2rem' }}>Currently Borrowed Items</h3>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Kit #</th>
-                  <th>Type</th>
-                  <th>Owner</th>
-                  <th>Since</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {borrowedItems.map(item => (
-                  <tr key={item.id}>
-                    <td>{item.kit_number}</td>
-                    <td>{ITEM_TYPES[item.type]}</td>
-                    <td>{item.curr_owner || 'N/A'}</td>
-                    <td>{item.last_updated}</td>
-                    <td>
-                      <button className="action-btn quick-return-btn" 
-                        onClick={() => onReturn(item.id)}>
-                        Return
-                      </button>
-                      <button className="action-btn mark-lost-btn" 
-                        onClick={() => onMarkLost(item.id)}>
-                        Mark Lost
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      ) : (
-        <p>No items currently borrowed</p>
-			)} */}
-			
     </div>
   )
 }

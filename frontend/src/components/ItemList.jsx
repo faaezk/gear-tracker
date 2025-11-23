@@ -102,20 +102,17 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow }) {
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Kit #</th>
               <th>Type</th>
               <th>Status</th>
               <th>Owner</th>
               <th>Last Updated</th>
               <th>Actions</th>
-              <th>Notes</th>
             </tr>
           </thead>
           <tbody>
             {filteredItems.map(item => (
               <tr key={item.id}>
-                <td>{item.id}</td>
                 <td>{item.kit_number}</td>
                 <td>{ITEM_TYPES[item.type]}</td>
                 <td>
@@ -182,7 +179,6 @@ function ItemList({ items, onReturn, onMarkLost, onMarkFound, onBorrow }) {
                     </>    
                     ))}
                 </td>
-                <td>{item.notes || '-'}</td>
               </tr>
             ))}
           </tbody>

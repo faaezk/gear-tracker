@@ -140,5 +140,20 @@ def change_owner(item_id):
     
     return jsonify(item_to_dict(item))
 
+@app.route('/api/items/<item_id>/notes', methods=['POST'])
+def update_notes(item_id):
+    data = request.get_json()
+    if not data or 'notes' not in data:
+        return jsonify({"error": "Notes are required"}), 400
+    
+    item = inventory.find_by_id(item_id)
+    if item is None:
+        return jsonify({"error": "Item not found"}), 404
+    
+    item.notes = data['notes']
+    inventory.save()
+    
+    return jsonify(item_to_dict(item))
+
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

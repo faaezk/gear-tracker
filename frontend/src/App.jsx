@@ -3,6 +3,8 @@ import './style.css'
 import { api } from './api.js'
 import Dashboard from './components/Dashboard.jsx'
 import ItemList from './components/ItemList.jsx'
+import ItemDetails from './components/ItemDetails.jsx'
+import KitDetails from './components/KitDetails.jsx'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard')
@@ -10,6 +12,8 @@ function App() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const [selectedKitNumber, setSelectedKitNumber] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -75,6 +79,34 @@ function App() {
       alert('Error: ' + error.message)
     }
   }
+
+  async function handleUpdateNotes(itemId, notes) {
+    try {
+      await api.updateNotes(itemId, notes)
+      await loadData()
+    } catch (error) {
+      alert('Error updating notes: ' + error.message)
+      throw error
+    }
+  }
+
+  function handleNavigateToItem(itemId) {
+    setSelectedItemId(itemId)
+    setSelectedKitNumber(null)
+    setCurrentView('itemDetails')
+  }
+
+  function handleNavigateToKit(kitNumber) {
+    setSelectedKitNumber(kitNumber)
+    setSelectedItemId(null)
+    setCurrentView('kitDetails')
+  }
+
+  function handleBackToDashboard() {
+    setSelectedItemId(null)
+    setSelectedKitNumber(null)
+    setCurrentView('dashboard')
+  }
     
   if (error) {
     return (
@@ -108,10 +140,40 @@ function App() {
         ) : (
           <>
             {currentView === 'dashboard' && (
-              <Dashboard stats={stats} items={items} onReturn={handleReturn} onMarkLost={handleMarkLost}/>
+              <Dashboard 
+                stats={stats} 
+                items={items}
+                onNavigateToItem={handleNavigateToItem}
+                onNavigateToKit={handleNavigateToKit}/>
             )}
             {currentView === 'items' && (
-              <ItemList items={items} onReturn={handleReturn} onMarkLost={handleMarkLost} onMarkFound={handleMarkFound} onBorrow={handleBorrow}/>
+              <ItemList 
+                items={items} 
+                onReturn={handleReturn} 
+                onMarkLost={handleMarkLost} 
+                onMarkFound={handleMarkFound} 
+                onBorrow={handleBorrow}/>
+            )}
+            {currentView === 'itemDetails' && selectedItemId && (
+              <ItemDetails 
+                item={items.find(item => item.id === selectedItemId)}
+                onBack={handleBackToDashboard}
+                onReturn={handleReturn}
+                onMarkLost={handleMarkLost}
+                onMarkFound={handleMarkFound}
+                onBorrow={handleBorrow}
+                onUpdateNotes={handleUpdateNotes}/>
+            )}
+            {currentView === 'kitDetails' && selectedKitNumber !== null && (
+              <KitDetails 
+                kitNumber={selectedKitNumber}
+                items={items}
+                onBack={handleBackToDashboard}
+                onReturn={handleReturn}
+                onMarkLost={handleMarkLost}
+                onMarkFound={handleMarkFound}
+                onBorrow={handleBorrow}
+                onUpdateNotes={handleUpdateNotes}/>
             )}
           </>
         )}

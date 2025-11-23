@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5001/api'
+const API_BASE_URL = '/api'
 
 export const api = {
   async getItems() {
@@ -65,6 +65,18 @@ export const api = {
       body: JSON.stringify({ owner: newOwner }),
     })
     if (!response.ok) throw new Error('Failed to change owner')
+    return response.json()
+  },
+
+  async updateNotes(itemId, notes) {
+    const response = await fetch(`${API_BASE_URL}/items/${itemId}/notes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ notes }),
+    })
+    if (!response.ok) throw new Error('Failed to update notes')
     return response.json()
   },
 }
