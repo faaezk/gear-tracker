@@ -49,22 +49,6 @@ export function ItemCard({ item, onReturn, onMarkLost, onMarkFound, onBorrow, on
 
       <div className="details-grid">
         <div className="detail-item">
-          <label>Item ID:</label>
-          <span>{item.id}</span>
-        </div>
-        <div className="detail-item">
-          <label>Kit Number:</label>
-          <span>{item.kit_number}</span>
-        </div>
-        <div className="detail-item">
-          <label>Type:</label>
-          <span>{ITEM_TYPES[item.type]}</span>
-        </div>
-        <div className="detail-item">
-          <label>Status:</label>
-          <span>{ITEM_STATUS[item.status]}</span>
-        </div>
-        <div className="detail-item">
           <label>Current Owner:</label>
           <span>{item.curr_owner || 'N/A'}</span>
         </div>
